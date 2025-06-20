@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FloraScan AI | Plant Disease Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+  /* ====== GENERAL RESET ====== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to bottom right, #e9f5e9, #d0f0c0);
+  color: #2d4739;
+  line-height: 1.6;
+}
+
+/* ====== HEADER ====== */
+header {
+  text-align: center;
+  padding: 60px 20px 40px;
+  background: url('../images/forest-bg.jpg') center/cover no-repeat;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 60, 20, 0.6);
+  z-index: 1;
+}
+
+header * {
+  position: relative;
+  z-index: 2;
+}
+
+header h1 {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+header .subtitle {
+  font-size: 1.2rem;
+  color: #d0ffd0;
+}
+
+/* ====== SVG DECORATIONS ====== */
+.leaf-decoration {
+  position: absolute;
+  width: 80px;
+  fill: #9fdf9f;
+  opacity: 0.4;
+}
+
+.leaf-1 {
+  top: 20px;
+  left: 20px;
+}
+
+.leaf-2 {
+  top: 40px;
+  right: 20px;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ====== CONTAINER ====== */
+.container {
+  padding: 40px 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ====== CARDS ====== */
+.morph-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 80, 50, 0.2);
+  padding: 30px;
+  transition: transform 0.3s;
+}
+
+.morph-card:hover {
+  transform: scale(1.01);
+}
+
+/* ====== UPLOAD SECTION ====== */
+.upload-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+/* ====== FORM GROUP ====== */
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+select,
+.file-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #a7d7a7;
+  border-radius: 8px;
+  background-color: #f5fff5;
+  color: #2d4739;
+}
+
+/* ====== FILE INPUT CUSTOMIZATION ====== */
+.file-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 2px dashed #a7d7a7;
+  border-radius: 10px;
+  padding: 12px;
+  background-color: #f0fff0;
+  cursor: pointer;
+}
+
+.file-input-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  color: #4d804d;
+}
+
+.file-input-placeholder {
+  color: #666;
+  flex-grow: 1;
+}
+
+.file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ====== BUTTON ====== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background-color: #388e3c;
+}
+
+/* ====== INFO CARD ====== */
+.info-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #2e5e2e;
+}
+
+.info-card ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.info-card li {
+  margin-bottom: 8px;
+}
+
+/* ====== RESULT SECTION ====== */
+.result-section {
+  display: none;
+}
+
+.result-section.active {
+  display: block;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.result-title {
+  font-size: 2rem;
+  color: #2d4739;
+}
+
+.confidence-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #e0f5e0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: #256d25;
+  font-weight: 500;
+}
+
+.result-grid {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.result-image-container {
+  flex: 1 1 45%;
+}
+
+.result-image {
+  max-width: 100%;
+  border-radius: 12px;
+  border: 3px solid #a7d7a7;
+}
+
+.result-details {
+  flex: 1 1 50%;
+}
+
+.disease-name {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #336633;
+}
+
+.disease-description {
+  margin-bottom: 16px;
+  color: #444;
+}
+
+.treatment-list {
+  display: grid;
+  gap: 10px;
+}
+
+.treatment-item {
+  background: #ecffee;
+  padding: 10px 15px;
+  border-left: 5px solid #4caf50;
+  border-radius: 8px;
+}
+
+/* ====== TRY AGAIN BUTTON ====== */
+.try-again {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.try-again-btn {
+  background-color: #81c784;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.try-again-btn:hover {
+  background-color: #66bb6a;
+}
+
+/* ====== LOADING ====== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 999;
+}
+
+.loading-overlay.active {
+  display: flex;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #c5e1c5;
+  border-top-color: #4caf50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  color: #2e7d32;
+}
+
+/* ====== FOOTER ====== */
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #e0f2e0;
+  color: #2e5e2e;
+  font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+  <header>
+    <svg class="leaf-decoration leaf-1 animate-float" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <path fill="currentColor" d="M272 96c-78.6 0-145.1 51.5-167.2 122.8c33.6-17 71.2-26.8 111.2-26.8c88.4 0 160 71.6 160 160c0 15.3-2.2 30.1-6.2 44.2c25.1-44.4 37.8-94.8 37.8-148.2C448 165.9 370.1 96 272 96zM161.5 241.2c-15.8 19.8-28.4 42.8-36.6 67.8c-3.8 11.8-6.4 24.1-7.7 36.9c-19.8-15.8-36.1-35.3-48.1-57.6C26.7 247.6 0 275.2 0 309.1C0 349 37 384 82.7 384h126.1c-24.2-33.1-36.6-72.4-34.5-112.7c-6.3-13.1-9.1-27.3-9.1-42.1c0-7.1 .5-14.1 1.4-20.9c-4.6 10.5-8.3 21.5-11 32.8zM320 448c44.2 0 80-35.8 80-80c0-5.5-.6-10.8-1.6-16c.5 0 1.1 0 1.6 0c44.2 0 80 35.8 80 80s-35.8 80-80 80H320z"/>
+    </svg>
+    
+    <svg class="leaf-decoration leaf-2 animate-float" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <path fill="currentColor" d="M272 96c-78.6 0-145.1 51.5-167.2 122.8c33.6-17 71.2-26.8 111.2-26.8c88.4 0 160 71.6 160 160c0 15.3-2.2 30.1-6.2 44.2c25.1-44.4 37.8-94.8 37.8-148.2C448 165.9 370.1 96 272 96zM161.5 241.2c-15.8 19.8-28.4 42.8-36.6 67.8c-3.8 11.8-6.4 24.1-7.7 36.9c-19.8-15.8-36.1-35.3-48.1-57.6C26.7 247.6 0 275.2 0 309.1C0 349 37 384 82.7 384h126.1c-24.2-33.1-36.6-72.4-34.5-112.7c-6.3-13.1-9.1-27.3-9.1-42.1c0-7.1 .5-14.1 1.4-20.9c-4.6 10.5-8.3 21.5-11 32.8zM320 448c44.2 0 80-35.8 80-80c0-5.5-.6-10.8-1.6-16c.5 0 1.1 0 1.6 0c44.2 0 80 35.8 80 80s-35.8 80-80 80H320z"/>
+    </svg>
+    
+    <h1>Plant Disease Detector</h1>
+    <p class="subtitle">Advanced plant disease detection powered by computer vision and deep learning</p>
+  </header>
+
+  <div class="container">
+    <div class="upload-section">
+      <div class="morph-card upload-card">
+        <form id="detection-form" method="POST" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="model_type">Detection Model</label>
+            <select name="model_type" id="model_type">
+              <option value="yolov5">YOLOv5</option>
+              <option value="yolov8">YOLOv8</option>
+              
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="image">Plant Image</label>
+            <div class="file-input-wrapper">
+              <svg class="file-input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <!-- <span class="file-input-label">Browse</span> -->
+              <span class="file-input-placeholder">No file selected</span>
+              <input type="file" name="image" id="image" required accept="image/*" class="file-input">
+            </div>
+          </div>
+          
+          <button type="submit" class="btn">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            Analyze Plant
+          </button>
+        </form>
+      </div>
+      
+      <div class="morph-card info-card">
+        <h3>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          How to get best results
+        </h3>
+        <ul>
+          <li>Use clear, well-lit photos of affected leaves</li>
+          <li>Capture both close-up and full plant views</li>
+          <li>Include a reference object for scale</li>
+          <li>Take photos against a neutral background</li>
+          <li>Avoid blurry or shadowed images</li>
+        </ul>
+      </div>
+    </div>
+
+    {% if result_img %}
+    <div class="morph-card result-section active" style="padding:40px !important">
+      <div class="result-header">
+        <h2 class="result-title">Detection Results</h2>
+        <div class="confidence-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Confidence: 92%
+        </div>
+      </div>
+      
+      <div class="result-grid">
+        <div class="result-image-container">
+          <img src="{{ result_img }}" alt="Disease Detection Result" class="result-image">
+        </div>
+<!--         
+        <div class="result-details">
+          <h3 class="disease-name">{{ label }}</h3>
+          <p class="disease-description">This fungal disease commonly affects plants in humid conditions, appearing as yellow spots that gradually turn brown and spread across leaves.</p>
+          
+          <h4>Recommended Treatment:</h4>
+          <div class="treatment-list">
+            <div class="treatment-item">Remove and destroy affected leaves immediately</div>
+            <div class="treatment-item">Apply copper-based fungicide every 7-10 days</div>
+            <div class="treatment-item">Improve air circulation around plants</div>
+            <div class="treatment-item">Avoid overhead watering to reduce moisture</div>
+            <div class="treatment-item">Apply neem oil as organic prevention</div>
+          </div> 
+          {% if treatment_list %}
+  <h4>Recommended Treatment:</h4>
+  <div class="treatment-list">
+    {% for treatment in treatment_list %}
+      <div class="treatment-item">{{ treatment }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+        </div>
+      </div> -->
+       <div class="result-details">
+       <h3 class="disease-name">{{ label }}</h3>
+<p class="disease-description">
+  {{ description if description else "No description available for this disease." }}
+</p>
+
+<h4>Recommended Treatment:</h4>
+<div class="treatment-list">
+  {% if recommendations %}
+    {% for item in recommendations %}
+      <div class="treatment-item">{{ item }}</div>
+    {% endfor %}
+  {% else %}
+    <div class="treatment-item">No treatment recommendations found.</div>
+  {% endif %}
+</div>
+</div>
+      <div class="try-again">
+        <button class="try-again-btn" onclick="resetForm()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Scan Another Plant
+        </button>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Analyzing your plant...</div>
+  </div>
+
+  <footer>
+    <p>© 2023 FloraScan AI | Helping growers protect their plants with artificial intelligence</p>
+  </footer>
+
+  <script>
+    // File input interaction
+    const fileInput = document.querySelector('.file-input');
+    const fileInputPlaceholder = document.querySelector('.file-input-placeholder');
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        fileInputPlaceholder.textContent = e.target.files[0].name;
+      } else {
+        fileInputPlaceholder.textContent = 'No file selected';
+      }
+    });
+
+    // Form submission loading
+    const form = document.getElementById('detection-form');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    if (form) {
+      form.addEventListener('submit', () => {
+        loadingOverlay.classList.add('active');
+      });
+    }
+
+    // Reset form function
+    function resetForm() {
+      document.querySelector('.result-section').classList.remove('active');
+      document.querySelector('.upload-section').style.display = 'grid';
+      fileInput.value = '';
+      fileInputPlaceholder.textContent = 'No file selected';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Simulate loading for demo
+    if (window.location.search.includes('demo=true')) {
+      setTimeout(() => {
+        loadingOverlay.classList.remove('active');
+        document.querySelector('.result-section').classList.add('active');
+        document.querySelector('.upload-section').style.display = 'none';
+        window.scrollTo({ top: document.querySelector('.result-section').offsetTop, behavior: 'smooth' });
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
